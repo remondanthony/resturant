@@ -1,26 +1,513 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* ============================================================================
+   TAVOLO — design tokens
+   Every colour, type, spacing, container, radius, shadow and easing value used
+   in the product is declared here. Components reference tokens, never raw hex.
+   ========================================================================== */
+@theme {
+  /* — Surfaces: espresso through to near-black ————————————————— */
+  --color-espresso-950: #080605;
+  --color-espresso-900: #0d0b09;
+  --color-espresso-850: #12100d;
+  --color-espresso-800: #191512;
+  --color-espresso-700: #221d18;
+  --color-espresso-600: #2e2720;
+
+  /* — Warm cream typography scale ————————————————————————————— */
+  --color-cream-50: #faf6ef;
+  --color-cream-100: #f2eada;
+  --color-cream-200: #ded3c1;
+  --color-cream-300: #b9ab97;
+  --color-cream-400: #8d8275;
+  /* Below 4.5:1 on every surface here — decorative fills only, never text.
+     cream-400 is the dimmest cream that stays readable. */
+  --color-cream-500: #675f56;
+
+  /* — Warm light + copper accents ————————————————————————————— */
+  --color-amber-glow: #e8a34a;
+  --color-amber-soft: #f0c489;
+  --color-copper: #b4622c;
+  /* Copper is a hair under 4.5:1 as small text — use this tint for anything
+     readable, and keep --color-copper for rules, icons and fills. */
+  --color-copper-light: #c4703a;
+  --color-copper-deep: #8a4720;
+
+  /* — Hairlines ————————————————————————————————————————————— */
+  --color-line: rgba(242, 234, 218, 0.1);
+  --color-line-strong: rgba(242, 234, 218, 0.22);
+
+  /* — Typefaces ————————————————————————————————————————————— */
+  --font-display: var(--font-cormorant), "Iowan Old Style", Georgia, ui-serif, serif;
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  /* — Editorial micro-label ————————————————————————————————— */
+  --text-eyebrow: 0.6875rem;
+  --text-eyebrow--line-height: 1;
+  --text-eyebrow--letter-spacing: 0.3em;
+
+  --tracking-display: -0.015em;
+  --tracking-label: 0.3em;
+
+  /* — Layout ———————————————————————————————————————————————— */
+  --container-page: 88rem;
+  --container-prose: 46rem;
+
+  /* — Radii: near-square. Luxury comes from restraint, not rounding. —— */
+  --radius-xs: 1px;
+  --radius-sm: 2px;
+  --radius-pill: 999px;
+
+  /* — Shadows: deep and diffuse, never grey ————————————————— */
+  --shadow-plate: 0 26px 60px -34px rgba(0, 0, 0, 0.9);
+  --shadow-lift: 0 40px 90px -46px rgba(0, 0, 0, 1);
+
+  /* — Motion ————————————————————————————————————————————————
+     One scale, five steps. Interface feedback is fast because staff work
+     through a service; only editorial reveals on the marketing pages are
+     allowed to take their time.
+
+       press      120ms  the moment a control is pushed
+       ui         180ms  hover, focus, active state, status change
+       surface    260ms  dialogs, toasts, things that enter and leave
+       entrance   420ms  larger elements arriving
+       editorial  700ms  marketing reveals only, never in the dashboard
+
+     Anything outside this list is a mistake, not a decision. */
+  --motion-press: 120ms;
+  --motion-ui: 180ms;
+  /* A bare `transition-colors` therefore lands on the ui step by default,
+     so the scale holds even where no duration is written. */
+  --default-transition-duration: 180ms;
+  --default-transition-timing-function: cubic-bezier(0.2, 0, 0, 1);
+  --motion-surface: 260ms;
+  --motion-entrance: 420ms;
+  --motion-editorial: 700ms;
+
+  /* Entrances decelerate hard; state changes use a calmer standard curve. */
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --ease-soft: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
+/* ==========================================================================
+   Base
+   ========================================================================== */
+@layer base {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    /* Height of the fixed header. Sticky offsets and anchor scroll-margins
+       read this instead of repeating the breakpoint ladder. */
+    --header-h: 4rem;
+    /* Height of the menu page's sticky category rail. */
+    --rail-h: 3.25rem;
+  }
+
+  @media (min-width: 640px) {
+    :root {
+      --header-h: 5rem;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    :root {
+      --header-h: 6rem;
+    }
+  }
+
+  html {
+    /* Reserve the scrollbar so opening the mobile menu never shifts layout. */
+    scrollbar-gutter: stable;
+    -webkit-text-size-adjust: 100%;
+    /* In-page category links glide. Reduced motion resets this to auto below. */
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: var(--color-espresso-950);
+    color: var(--color-cream-100);
+    font-family: var(--font-sans);
+    font-synthesis-weight: none;
+    text-rendering: optimizeLegibility;
+    /* Nothing in the design may cause sideways scroll. */
+    overflow-x: clip;
+  }
+
+  /* Fine film grain over the whole page — the cinematic base layer. */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    pointer-events: none;
+    opacity: 0.035;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  h1, h2, h3, h4 {
+    font-family: var(--font-display);
+    font-weight: 300;
+    letter-spacing: var(--tracking-display);
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  ::selection {
+    background-color: var(--color-copper);
+    color: var(--color-cream-50);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-amber-glow);
+    outline-offset: 3px;
+    border-radius: 1px;
+  }
+
+  /* Dialogs live in the top layer; dim what sits behind them. */
+  dialog::backdrop {
+    background-color: rgba(8, 6, 5, 0.72);
+    backdrop-filter: blur(2px);
+  }
+
+  /*
+   * Dialog open and close.
+   *
+   * `overlay` and `display` in the transition list, with
+   * `transition-behavior: allow-discrete`, are what let a native <dialog>
+   * animate on the way OUT as well as in — without them the close is a snap.
+   */
+  dialog {
+    opacity: 0;
+    transform: translateY(0.5rem) scale(0.98);
+    transition:
+      opacity var(--motion-surface) var(--ease-standard),
+      transform var(--motion-surface) var(--ease-standard),
+      overlay var(--motion-surface) allow-discrete,
+      display var(--motion-surface) allow-discrete;
+  }
+
+  dialog[open] {
+    opacity: 1;
+    transform: none;
+  }
+
+  @starting-style {
+    dialog[open] {
+      opacity: 0;
+      transform: translateY(0.5rem) scale(0.98);
+    }
+  }
+
+  dialog::backdrop {
+    opacity: 0;
+    transition:
+      opacity var(--motion-surface) var(--ease-standard),
+      overlay var(--motion-surface) allow-discrete,
+      display var(--motion-surface) allow-discrete;
+  }
+
+  dialog[open]::backdrop {
+    opacity: 1;
+  }
+
+  @starting-style {
+    dialog[open]::backdrop {
+      opacity: 0;
+    }
+  }
+
+  /* The mobile menu fills the screen, so it rises rather than scales. */
+  dialog.sheet,
+  dialog.sheet[open] {
+    transform: none;
+  }
+
+  dialog.sheet {
+    opacity: 0;
+    translate: 0 1.5rem;
+    transition:
+      opacity var(--motion-surface) var(--ease-standard),
+      translate var(--motion-surface) var(--ease-out-expo),
+      overlay var(--motion-surface) allow-discrete,
+      display var(--motion-surface) allow-discrete;
+  }
+
+  dialog.sheet[open] {
+    opacity: 1;
+    translate: 0 0;
+  }
+
+  @starting-style {
+    dialog.sheet[open] {
+      opacity: 0;
+      translate: 0 1.5rem;
+    }
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* ==========================================================================
+   Utilities
+   ========================================================================== */
+
+/* The page gutter. Fluid, so no breakpoint juggling for the common case. */
+@utility container-page {
+  width: 100%;
+  max-width: var(--container-page);
+  margin-inline: auto;
+  padding-inline: clamp(1.25rem, 5vw, 5rem);
+}
+
+/* Clears the fixed header. Every page that is not the homepage opens with it. */
+@utility page-top {
+  padding-top: calc(var(--header-h) + 3rem);
+}
+
+/* Anchor target that comes to rest below the header and the sticky rail. */
+@utility rail-anchor {
+  scroll-margin-top: calc(var(--header-h) + var(--rail-h) + 1.5rem);
+}
+
+/* Horizontal scroller with no visible scrollbar — the mobile category rail. */
+@utility no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* The display serif ships oldstyle figures, which turn "£19" into "£I9".
+   Any number a reader has to scan — prices, indices — gets lining figures. */
+@utility lining-figures {
+  font-variant-numeric: lining-nums tabular-nums;
+}
+
+/* Toast entrance. The global reduced-motion rule collapses it to an instant. */
+/* Applied to the active step in the booking flows. */
+@utility step-in {
+  animation: step-in var(--motion-ui) var(--ease-standard) both;
+}
+
+/* Applied to the booking confirmation panel. Reduced motion stills it. */
+@utility confirm-mark {
+  animation: confirm-mark var(--motion-entrance) var(--ease-out-expo) both;
+}
+
+@utility confirm-rule {
+  transform-origin: left;
+  animation: confirm-rule var(--motion-entrance) var(--ease-out-expo) 120ms both;
+}
+
+@utility toast-in {
+  animation: toast-in var(--motion-surface) var(--ease-out-expo) both;
+}
+
+/* Loading placeholder. The global reduced-motion rule stills the shimmer. */
+@utility skeleton {
+  background-color: var(--color-espresso-800);
+  background-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(242, 234, 218, 0.06) 50%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-sweep 1.6s ease-in-out infinite;
+}
+
+/* Hairline rule used to open and close sections. */
+@utility rule-top {
+  border-top: 1px solid var(--color-line);
+}
+
+/* A warm pool of light behind a section, for depth without gradients-as-decor. */
+@utility warm-pool {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    62% 52% at 50% 0%,
+    rgba(184, 98, 44, 0.16) 0%,
+    rgba(184, 98, 44, 0) 70%
+  );
+}
+
+/* ==========================================================================
+   Motion — scroll-driven, CSS-only, progressively enhanced.
+   Without `animation-timeline` support (or with reduced motion) content simply
+   renders in its final state. No JavaScript, no flash of hidden content.
+   ========================================================================== */
+@keyframes reveal-in {
+  from {
+    opacity: 0;
+    transform: translateY(1.75rem);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes reveal-scale {
+  from {
+    opacity: 0;
+    clip-path: inset(12% 6% 12% 6%);
+    transform: scale(1.04);
+  }
+  to {
+    opacity: 1;
+    clip-path: inset(0 0 0 0);
+    transform: none;
+  }
+}
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(1.5rem);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/*
+ * Step entrance for the booking flows.
+ *
+ * Only opacity and transform animate — never height. The outgoing step
+ * unmounts and the incoming one takes its place exactly as before, so the
+ * layout settles instantly and the motion is pure continuity, not a reflow
+ * the guest has to wait through.
+ */
+@keyframes step-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.375rem);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Confirmation mark. One quiet pass — a restaurant confirming a booking, not
+   a game awarding a prize. */
+@keyframes confirm-mark {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes confirm-rule {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.5rem);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes skeleton-sweep {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+
+@keyframes scroll-cue {
+  0% {
+    transform: translateY(-100%);
+  }
+  55%,
+  100% {
+    transform: translateY(800%);
+  }
+}
+
+@keyframes header-settle {
+  from {
+    background-color: rgba(8, 6, 5, 0);
+    border-bottom-color: rgba(242, 234, 218, 0);
+    backdrop-filter: blur(0px);
+  }
+  to {
+    background-color: rgba(8, 6, 5, 0.88);
+    border-bottom-color: rgba(242, 234, 218, 0.1);
+    backdrop-filter: blur(12px);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) {
+    .reveal {
+      animation: reveal-in linear both;
+      animation-timeline: view();
+      animation-range: entry 4% cover 24%;
+    }
+
+    .reveal-image {
+      animation: reveal-scale linear both;
+      animation-timeline: view();
+      animation-range: entry 2% cover 30%;
+    }
+  }
+
+  /* Hero copy animates on load rather than on scroll — it is already in view. */
+  .rise {
+    animation: rise-in 0.9s var(--ease-out-expo) both;
+  }
+
+  @supports (animation-timeline: scroll()) {
+    .header-settle {
+      animation: header-settle linear both;
+      animation-timeline: scroll(root block);
+      animation-range: 0 140px;
+    }
+  }
+}
+
+/* Reduced motion: strip every animation and transition, keep the end state. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Printing has no scrollport, so scroll-driven reveals would print blank. */
+@media print {
+  .reveal,
+  .reveal-image,
+  .rise {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+    clip-path: none !important;
+  }
 }

@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1120" width="1920" height="1120" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <linearGradient id="base" x1="0.15" y1="0" x2="0.7" y2="1">
+      <stop offset="0" stop-color="#3a2d1f"/>
+      <stop offset="1" stop-color="#080605"/>
+    </linearGradient>
+    <radialGradient id="key" cx="0.66" cy="0.44" r="0.85">
+      <stop offset="0" stop-color="#e8a34a" stop-opacity="0.780"/>
+      <stop offset="0.38" stop-color="#b4622c" stop-opacity="0.338"/>
+      <stop offset="1" stop-color="#b4622c" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="rim" cx="0.14" cy="0.88" r="0.7">
+      <stop offset="0" stop-color="#b4622c" stop-opacity="0.364"/>
+      <stop offset="1" stop-color="#b4622c" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="vignette" cx="0.5" cy="0.45" r="0.78">
+      <stop offset="0.5" stop-color="#000000" stop-opacity="0"/>
+      <stop offset="1" stop-color="#000000" stop-opacity="0.6"/>
+    </radialGradient>
+    <filter id="grain" x="0" y="0" width="100%" height="100%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="3" stitchTiles="stitch"/>
+      <feColorMatrix type="saturate" values="0"/>
+    </filter>
+  </defs>
+  <rect width="1920" height="1120" fill="url(#base)"/>
+  <rect width="1920" height="1120" fill="url(#key)"/>
+  <rect width="1920" height="1120" fill="url(#rim)"/>
+  <g transform="scale(19.2 11.2)" fill="none" stroke="#f2eada" stroke-width="1" opacity="0.055" vector-effect="non-scaling-stroke"><path d="M50 6v88"/><path d="M30 26h40"/><path d="M30 74h40"/></g>
+  <rect width="1920" height="1120" filter="url(#grain)" opacity="0.14" style="mix-blend-mode:overlay"/>
+  <rect width="1920" height="1120" fill="url(#vignette)"/>
+</svg>
