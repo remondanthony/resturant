@@ -4,10 +4,16 @@ import type { ComponentProps, ReactNode } from "react";
 type Variant = "primary" | "outline" | "ghost";
 type Size = "md" | "lg";
 
+/*
+ * The lift on hover and the press on active are the whole tactility budget for
+ * a button: a couple of pixels, on the ui step, with the standard curve. The
+ * `:active` rule is written after `:hover` so a press still reads as a press
+ * while the pointer is over the control.
+ */
 const base =
   "group/btn inline-flex items-center justify-center gap-2.5 rounded-xs font-sans font-medium uppercase " +
   "text-eyebrow whitespace-nowrap transition-[background-color,color,border-color,transform] duration-180 " +
-  "ease-standard active:translate-y-px";
+  "ease-standard hover:-translate-y-0.5 active:translate-y-px";
 
 const variants: Record<Variant, string> = {
   primary:

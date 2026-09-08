@@ -20,15 +20,19 @@ export function PagePlaceholder({
     <section className="relative isolate overflow-hidden">
       <div aria-hidden="true" className="warm-pool -z-10" />
       <div className="container-page flex min-h-[70svh] flex-col justify-center py-32 lg:py-44">
+        {/* Above the fold on arrival, so this rises on load like the page
+            heroes rather than waiting on a scroll that may never come. */}
         <div className="max-w-2xl">
-          <Eyebrow>{eyebrow}</Eyebrow>
-          <h1 className="mt-7 text-[clamp(2.5rem,7vw,5rem)] font-light leading-[1] text-cream-50">
+          <div className="rise [animation-delay:100ms]">
+            <Eyebrow>{eyebrow}</Eyebrow>
+          </div>
+          <h1 className="rise mt-7 text-[clamp(2.5rem,7vw,5rem)] font-light leading-[1] text-cream-50 [animation-delay:180ms]">
             {title}
           </h1>
-          <div className="mt-8 max-w-prose text-base/relaxed text-cream-300 sm:text-lg/relaxed">
+          <div className="rise mt-8 max-w-prose text-base/relaxed text-cream-300 [animation-delay:280ms] sm:text-lg/relaxed">
             {children}
           </div>
-          <div className="mt-12 flex flex-col gap-4 sm:flex-row sm:items-center">
+          <div className="rise mt-12 flex flex-col gap-4 [animation-delay:380ms] sm:flex-row sm:items-center">
             <Button href={RESERVATIONS_HREF} size="lg">
               Reserve a Table
             </Button>

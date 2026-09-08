@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { ReserveButton } from "@/components/layout/ReserveButton";
 import { navLinks, site } from "@/lib/site";
 
@@ -65,7 +65,8 @@ export function MobileMenu() {
         onCancel={() => setOpen(false)}
         className="sheet m-0 h-dvh max-h-none w-full max-w-none border-0 bg-espresso-950 p-0 text-cream-100 backdrop:bg-espresso-950/70 open:flex open:flex-col"
       >
-        <div className="flex h-[var(--header-h)] shrink-0 items-center justify-between border-b border-line px-5 sm:px-8">
+        {/* The sheet slides up, then its contents settle in behind it. */}
+        <div className="menu-reveal flex h-[var(--header-h)] shrink-0 items-center justify-between border-b border-line px-5 sm:px-8">
           <span className="font-display text-xl font-light uppercase tracking-[0.34em] text-cream-100">
             <span className="-mr-[0.34em]">{site.name}</span>
           </span>
@@ -87,7 +88,11 @@ export function MobileMenu() {
             {navLinks.map((link, index) => {
               const isActive = pathname === link.href || pathname.startsWith(`${link.href}/`);
               return (
-                <li key={link.href} className="border-b border-line">
+                <li
+                  key={link.href}
+                  className="menu-reveal border-b border-line"
+                  style={{ "--stagger": index + 1 } as CSSProperties}
+                >
                   <Link
                     href={link.href}
                     onClick={() => setOpen(false)}
@@ -112,7 +117,10 @@ export function MobileMenu() {
           </ul>
         </nav>
 
-        <div className="shrink-0 border-t border-line px-5 pb-[max(2rem,env(safe-area-inset-bottom))] pt-6 sm:px-8">
+        <div
+          className="menu-reveal shrink-0 border-t border-line px-5 pb-[max(2rem,env(safe-area-inset-bottom))] pt-6 sm:px-8"
+          style={{ "--stagger": navLinks.length + 1 } as CSSProperties}
+        >
           <ReserveButton size="lg" className="w-full" onNavigate={() => setOpen(false)} />
           <a
             href={site.contact.phoneHref}

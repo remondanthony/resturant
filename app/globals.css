@@ -286,9 +286,18 @@
 }
 
 /* Toast entrance. The global reduced-motion rule collapses it to an instant. */
-/* Applied to the active step in the booking flows. */
+/*
+ * Applied to the active step in the booking flows, and to any group of items
+ * that arrives at once rather than on scroll — a row of time slots, the room
+ * cards. Set `--stagger` to an index on each item to walk them in.
+ *
+ * This is an ordinary time-based animation, so the offset is a real duration.
+ * The scroll-driven reveals below need a percentage instead; the note there
+ * explains why the two units differ.
+ */
 @utility step-in {
   animation: step-in var(--motion-ui) var(--ease-standard) both;
+  animation-delay: calc(var(--stagger, 0) * 40ms);
 }
 
 /* Applied to the booking confirmation panel. Reduced motion stills it. */
@@ -427,6 +436,20 @@
   }
 }
 
+/* The mobile menu's own arrival, once the dialog is open. Same shape as
+   reveal-in, kept separate because it is time-based rather than scroll-driven
+   — see the `--stagger` note beside `.menu-reveal` below. */
+@keyframes sheet-content-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.85rem);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
 @keyframes skeleton-sweep {
   from {
     background-position: 200% 0;
@@ -460,23 +483,53 @@
 }
 
 @media (prefers-reduced-motion: no-preference) {
+  /*
+   * `--stagger` walks a row of items in one after another instead of all at
+   * once. Set it to the item's index; leaving it unset means no offset, so
+   * every existing use of these classes is unchanged.
+   *
+   * The offset moves the animation range rather than setting a delay. These
+   * are driven by a view progress timeline, not by the clock, so there is no
+   * elapsed time for `animation-delay` to refer to — it only accepts a
+   * duration, and a percentage there is simply dropped. Shifting both ends of
+   * the range by the same amount keeps the span intact and starts each item a
+   * little further into its own approach.
+   *
+   * Only stagger things that cross into view together, such as a grid row. A
+   * stacked column already arrives one item at a time as you scroll.
+   */
   @supports (animation-timeline: view()) {
     .reveal {
       animation: reveal-in linear both;
       animation-timeline: view();
-      animation-range: entry 4% cover 24%;
+      animation-range: entry calc(4% + var(--stagger, 0) * 4%) cover
+        calc(24% + var(--stagger, 0) * 4%);
     }
 
     .reveal-image {
       animation: reveal-scale linear both;
       animation-timeline: view();
-      animation-range: entry 2% cover 30%;
+      animation-range: entry calc(2% + var(--stagger, 0) * 4%) cover
+        calc(30% + var(--stagger, 0) * 4%);
     }
   }
 
   /* Hero copy animates on load rather than on scroll — it is already in view. */
   .rise {
     animation: rise-in 0.9s var(--ease-out-expo) both;
+  }
+
+  /*
+   * The mobile menu's contents settle in behind the sheet.
+   *
+   * Scoped to `[open]` on purpose. The dialog is in the DOM from first paint,
+   * so an unscoped animation would play once while the sheet was still hidden
+   * and never run again. Tying it to the attribute means the browser applies
+   * it afresh every time the menu opens.
+   */
+  dialog.sheet[open] .menu-reveal {
+    animation: sheet-content-in var(--motion-entrance) var(--ease-out-expo) both;
+    animation-delay: calc(var(--stagger, 0) * 45ms);
   }
 
   @supports (animation-timeline: scroll()) {

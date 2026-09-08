@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useState, useTransition } from "react";
+import { useActionState, useEffect, useState, useTransition, type CSSProperties } from "react";
 import { Check, Minus, Plus } from "lucide-react";
 import Link from "next/link";
 import {
@@ -107,7 +107,7 @@ export function PrivateDiningBooking({
         <div className="mt-8">
           <Link
             href="/reservations/manage"
-            className="inline-flex min-h-12 items-center border border-line-strong px-6 text-eyebrow font-medium uppercase text-cream-100 transition-colors hover:border-amber-glow hover:text-amber-soft"
+            className="inline-flex min-h-12 items-center border border-line-strong px-6 text-eyebrow font-medium uppercase text-cream-100 transition-[color,border-color,transform] duration-180 ease-standard hover:-translate-y-0.5 hover:border-amber-glow hover:text-amber-soft"
           >
             Manage booking
           </Link>
@@ -244,10 +244,15 @@ export function PrivateDiningBooking({
               </p>
             ) : (
               <ul className="mt-6 grid gap-3 sm:grid-cols-2">
-                {spaces.map((entry) => {
+                {spaces.map((entry, index) => {
                   const selected = entry.id === spaceId;
                   return (
-                    <li key={entry.id}>
+                    /* The rooms resolve together, so walk them in. */
+                    <li
+                      key={entry.id}
+                      className="step-in"
+                      style={{ "--stagger": Math.min(index, 8) } as CSSProperties}
+                    >
                       <button
                         type="button"
                         onClick={() => {
@@ -303,10 +308,14 @@ export function PrivateDiningBooking({
               {space.name} on {formatLongDate(date)}.
             </p>
             <ul className="mt-6 flex flex-wrap gap-2.5">
-              {space.times.map((time) => {
+              {space.times.map((time, index) => {
                 const selected = time === startTime;
                 return (
-                  <li key={time}>
+                  <li
+                    key={time}
+                    className="step-in"
+                    style={{ "--stagger": Math.min(index, 8) } as CSSProperties}
+                  >
                     <button
                       type="button"
                       onClick={() => setStartTime(time)}

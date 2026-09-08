@@ -31,8 +31,8 @@ export function MenuSection({ category }: { category: MenuCategory }) {
         </div>
 
         <ul className="grid gap-10 lg:col-span-8 lg:grid-cols-2 lg:gap-x-12 lg:gap-y-12">
-          {category.items.map((item) => (
-            <MenuItem key={item.slug} item={item} />
+          {category.items.map((item, index) => (
+            <MenuItem key={item.slug} item={item} index={index} />
           ))}
         </ul>
       </div>

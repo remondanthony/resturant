@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { TextLink } from "@/components/ui/TextLink";
 import { DishCard } from "@/components/home/DishCard";
@@ -30,7 +31,12 @@ export function SignatureDishes() {
             rather than gridded. */}
         <ul className="mt-16 grid gap-x-8 gap-y-16 sm:grid-cols-2 lg:mt-24 lg:grid-cols-4 lg:gap-x-6">
           {signatureDishes.map((dish, index) => (
-            <li key={dish.slug} className={index % 2 === 1 ? "lg:translate-y-14" : ""}>
+            <li
+              key={dish.slug}
+              className={index % 2 === 1 ? "lg:translate-y-14" : ""}
+              /* The row crosses into view together, so walk the cards in. */
+              style={{ "--stagger": index % 4 } as CSSProperties}
+            >
               <DishCard dish={dish} />
             </li>
           ))}

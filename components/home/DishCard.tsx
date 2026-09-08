@@ -4,7 +4,7 @@ import type { Dish } from "@/data/menu";
 
 export function DishCard({ dish }: { dish: Dish }) {
   return (
-    <article className="group reveal flex flex-col">
+    <article className="group reveal flex flex-col transition-transform duration-180 ease-standard hover:-translate-y-1">
       <ImageWithFallback
         src={dish.image}
         alt={dish.name}

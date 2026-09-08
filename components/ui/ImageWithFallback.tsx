@@ -95,8 +95,11 @@ export function ImageWithFallback({
           onError={handleError}
           className={[
             // An editorial reveal, deliberately slower than interface feedback.
+            // The photograph settles out of a slight zoom as it arrives rather
+            // than simply switching on. The frame clips the overscan, so the
+            // layout never moves.
             "object-cover transition-[opacity,transform] duration-700 ease-out-expo",
-            status === "loaded" ? "opacity-100" : "opacity-0",
+            status === "loaded" ? "scale-100 opacity-100" : "scale-[1.03] opacity-0",
             zoomOnHover ? "group-hover:scale-[1.04]" : "",
             imageClassName,
           ]

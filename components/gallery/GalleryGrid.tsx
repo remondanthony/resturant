@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import { ImageWithFallback } from "@/components/ui/ImageWithFallback";
 import type { GalleryItem } from "@/data/gallery";
 
@@ -18,8 +19,15 @@ export function GalleryGrid({
     <ul
       className={`grid grid-cols-1 gap-5 sm:grid-cols-12 sm:gap-x-6 sm:gap-y-16 ${className}`}
     >
-      {items.map((item) => (
-        <li key={item.src} className={item.className}>
+      {items.map((item, index) => (
+        <li
+          key={item.src}
+          /* `group` is what the image's hover zoom listens to. */
+          className={`group ${item.className}`}
+          /* Frames in the same band arrive together, so walk them in. Capped
+             so a long chapter does not end on a visibly late frame. */
+          style={{ "--stagger": index % 4 } as CSSProperties}
+        >
           <ImageWithFallback
             src={item.src}
             alt={item.alt}
@@ -27,6 +35,7 @@ export function GalleryGrid({
             className="reveal-image w-full"
             imageClassName={item.imageClassName}
             sizes={sizes}
+            zoomOnHover
           />
         </li>
       ))}

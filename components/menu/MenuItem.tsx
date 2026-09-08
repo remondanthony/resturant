@@ -1,15 +1,21 @@
+import type { CSSProperties } from "react";
 import { dietaryLabels, type MenuItem as MenuItemData } from "@/data/menu";
 import { formatPrice } from "@/lib/format";
 
 /**
  * One line of the menu: name, leader rule, price, then the description
- * beneath. Deliberately not a card — a menu should read like a menu.
+ * beneath. Deliberately not a card — a menu should read like a menu, so the
+ * hover is a colour shift on the dish and nothing more. No lift, no shadow.
  */
-export function MenuItem({ item }: { item: MenuItemData }) {
+export function MenuItem({ item, index = 0 }: { item: MenuItemData; index?: number }) {
   return (
-    <li className="reveal">
+    <li
+      className="group reveal"
+      /* Two columns at lg, so alternate the offset down the list. */
+      style={{ "--stagger": index % 2 } as CSSProperties}
+    >
       <div className="flex items-baseline gap-4">
-        <h3 className="font-display text-xl font-light leading-tight text-cream-100 sm:text-2xl">
+        <h3 className="font-display text-xl font-light leading-tight text-cream-100 transition-colors duration-180 ease-standard group-hover:text-amber-soft sm:text-2xl">
           {item.name}
         </h3>
         <span aria-hidden="true" className="h-px min-w-6 flex-1 bg-line" />

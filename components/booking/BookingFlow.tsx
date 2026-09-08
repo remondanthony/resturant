@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useState, useTransition } from "react";
+import { useActionState, useEffect, useState, useTransition, type CSSProperties } from "react";
 import { Check, Minus, Plus } from "lucide-react";
 import Link from "next/link";
 import { loadAvailableTimes, submitBooking } from "@/lib/booking/actions";
@@ -110,13 +110,13 @@ export function BookingFlow({
         <div className="mt-8 flex flex-wrap gap-4">
           <Link
             href="/reservations/manage"
-            className="inline-flex min-h-12 items-center border border-line-strong px-6 text-eyebrow font-medium uppercase text-cream-100 transition-colors hover:border-amber-glow hover:text-amber-soft"
+            className="inline-flex min-h-12 items-center border border-line-strong px-6 text-eyebrow font-medium uppercase text-cream-100 transition-[color,border-color,transform] duration-180 ease-standard hover:-translate-y-0.5 hover:border-amber-glow hover:text-amber-soft"
           >
             Manage booking
           </Link>
           <Link
             href="/menu"
-            className="inline-flex min-h-12 items-center border border-line-strong px-6 text-eyebrow font-medium uppercase text-cream-100 transition-colors hover:border-amber-glow hover:text-amber-soft"
+            className="inline-flex min-h-12 items-center border border-line-strong px-6 text-eyebrow font-medium uppercase text-cream-100 transition-[color,border-color,transform] duration-180 ease-standard hover:-translate-y-0.5 hover:border-amber-glow hover:text-amber-soft"
           >
             Explore Menu
           </Link>
@@ -256,10 +256,16 @@ export function BookingFlow({
               </p>
             ) : (
               <ul className="mt-6 flex flex-wrap gap-2.5">
-                {times.map((time) => {
+                {times.map((time, index) => {
                   const selected = time === startTime;
                   return (
-                    <li key={time}>
+                    /* The slots land together once availability resolves, so
+                       they walk in rather than appearing all at once. */
+                    <li
+                      key={time}
+                      className="step-in"
+                      style={{ "--stagger": Math.min(index, 8) } as CSSProperties}
+                    >
                       <button
                         type="button"
                         onClick={() => setStartTime(time)}

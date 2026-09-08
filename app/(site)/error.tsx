@@ -26,11 +26,13 @@ export default function SiteError({
       <div aria-hidden="true" className="warm-pool -z-10" />
       <div className="container-page flex min-h-[70svh] flex-col justify-center py-32 lg:py-44">
         <div className="max-w-2xl">
-          <Eyebrow>Something went wrong</Eyebrow>
-          <h1 className="mt-7 text-[clamp(2.5rem,7vw,5rem)] font-light leading-[1] text-cream-50">
+          <div className="rise [animation-delay:100ms]">
+            <Eyebrow>Something went wrong</Eyebrow>
+          </div>
+          <h1 className="rise mt-7 text-[clamp(2.5rem,7vw,5rem)] font-light leading-[1] text-cream-50 [animation-delay:180ms]">
             A moment&rsquo;s trouble.
           </h1>
-          <div className="mt-8 max-w-prose space-y-4 text-base/relaxed text-cream-300 sm:text-lg/relaxed">
+          <div className="rise mt-8 max-w-prose space-y-4 text-base/relaxed text-cream-300 [animation-delay:280ms] sm:text-lg/relaxed">
             <p>
               We could not load this page. It is usually temporary — try again, and if you were
               booking a table, call us and we will sort it out on the spot.
@@ -39,7 +41,7 @@ export default function SiteError({
               <p className="lining-figures text-sm text-cream-400">Reference: {error.digest}</p>
             ) : null}
           </div>
-          <div className="mt-12 flex flex-col gap-4 sm:flex-row sm:items-center">
+          <div className="rise mt-12 flex flex-col gap-4 [animation-delay:380ms] sm:flex-row sm:items-center">
             <Button onClick={reset} size="lg">
               Try Again
             </Button>

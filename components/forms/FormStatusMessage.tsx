@@ -44,7 +44,7 @@ export function FormStatusMessage({ state, subject }: { state: FormState; subjec
       tabIndex={-1}
       role="status"
       aria-live="polite"
-      className={`flex gap-4 border ${tone.accent} bg-espresso-900 p-6 outline-none`}
+      className={`toast-in flex gap-4 border ${tone.accent} bg-espresso-900 p-6 outline-none`}
     >
       <Icon aria-hidden="true" strokeWidth={1.25} className="mt-0.5 size-5 shrink-0 text-amber-glow" />
       <div className="text-sm/relaxed">
