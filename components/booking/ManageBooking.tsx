@@ -4,6 +4,7 @@ import { useActionState, useState, useTransition } from "react";
 import Link from "next/link";
 import { cancelOwnReservation, lookupReservation } from "@/lib/booking/actions";
 import { Field } from "@/components/forms/Field";
+import { PrepStatus } from "@/components/booking/PrepStatus";
 import { SubmitButton } from "@/components/forms/SubmitButton";
 import { formatLongDate, formatTime } from "@/lib/booking/time";
 import { initialFormState } from "@/lib/forms";
@@ -33,12 +34,12 @@ export function ManageBooking() {
 
   if (cancelled) {
     return (
-      <div className="border border-line bg-espresso-900 p-8">
+      <div className="step-in border border-line bg-espresso-900 p-8">
         <h2 className="font-display text-2xl font-light text-cream-50">Cancelled</h2>
         <p className="mt-4 text-sm/relaxed text-cream-300">{cancelled}</p>
         <Link
           href="/reservations"
-          className="mt-8 inline-flex min-h-12 items-center border border-line-strong px-6 text-eyebrow font-medium uppercase text-cream-100 transition-colors hover:border-amber-glow hover:text-amber-soft"
+          className="mt-8 inline-flex min-h-12 items-center border border-line-strong px-6 text-eyebrow font-medium uppercase text-cream-100 transition-[color,border-color,transform] duration-180 ease-standard hover:-translate-y-0.5 hover:border-amber-glow hover:text-amber-soft"
         >
           Book again
         </Link>
@@ -48,7 +49,7 @@ export function ManageBooking() {
 
   if (found) {
     return (
-      <div className="border border-line bg-espresso-900 p-8">
+      <div className="step-in border border-line bg-espresso-900 p-8">
         <p className="text-eyebrow font-medium uppercase text-amber-glow">Found</p>
         <p className="lining-figures mt-4 font-display text-3xl font-light text-cream-50">
           {found.code}
@@ -72,6 +73,11 @@ export function ManageBooking() {
               </div>
             ))}
         </dl>
+
+        {/* The kitchen's own progress, if an order is being prepared. Read
+            only — it re-checks this guest's code and contact server-side and
+            has no way to change anything. */}
+        <PrepStatus code={found.code} contact={found.contact} />
 
         <p className="mt-6 max-w-prose text-sm/relaxed text-cream-300">
           To change the date, time or party size, please call us on{" "}
@@ -116,7 +122,14 @@ export function ManageBooking() {
   }
 
   return (
-    <form key={state.attempt} action={formAction} noValidate className="max-w-md space-y-6">
+    /* Each phase replaces the last, so it arrives the same way a booking step
+       does rather than snapping into place. */
+    <form
+      key={state.attempt}
+      action={formAction}
+      noValidate
+      className="step-in max-w-md space-y-6"
+    >
       {state.status === "error" ? (
         <p role="alert" className="border border-rose-400/40 bg-rose-400/5 p-4 text-sm/relaxed text-rose-300">
           {state.message}

@@ -36,6 +36,13 @@
       "when": 1787970371456,
       "tag": "0004_booking_types_and_notifications",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1788056771456,
+      "tag": "0005_prep_timers",
+      "breakpoints": true
     }
   ]
 }

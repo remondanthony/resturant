@@ -15,6 +15,7 @@
     "setup": "npm run db:migrate && npm run db:seed",
     "test": "tsx --test tests/*.test.ts",
     "test:db": "tsx --conditions=react-server --env-file=.env.local tests/integration.mts",
+    "test:timer": "tsx --conditions=react-server --env-file=.env.local tests/prep-timer-integration.mts",
     "db:start": "/usr/local/opt/postgresql@17/bin/pg_ctl -D /usr/local/var/postgresql@17 -l /usr/local/var/log/postgresql@17.log start",
     "db:stop": "/usr/local/opt/postgresql@17/bin/pg_ctl -D /usr/local/var/postgresql@17 stop -m fast"
   },

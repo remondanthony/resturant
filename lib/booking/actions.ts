@@ -16,6 +16,8 @@ import { normalisePhone } from "@/lib/booking/phone";
 import { getDb, schema } from "@/lib/db";
 import { notifyGuest } from "@/lib/notifications/service";
 import { readForm, type FieldRule, type FormState } from "@/lib/forms";
+import { cancelTimerForReservation, getTimerForReservation } from "@/lib/prep-timer/service";
+import type { PrepTimerView } from "@/lib/prep-timer/types";
 
 /**
  * Public booking actions.
@@ -284,5 +286,31 @@ export async function cancelOwnReservation(
   if (!result.ok) {
     return { ok: false, message: result.message };
   }
+
+  // The guest cancelling stops the kitchen too. Recorded with no staff member
+  // against it, because none was involved.
+  await cancelTimerForReservation(reservation.id, null);
+
   return { ok: true, message: "Your reservation has been cancelled." };
+}
+
+/* ────────────────────────────────────────────────── preparation status ──── */
+
+/**
+ * The kitchen timer for the guest's own booking.
+ *
+ * Read-only, and this module exposes no way to change a timer: every control
+ * lives behind `requireStaff` in the admin actions. The credential is the same
+ * code-and-contact pair the lookup uses, checked again here rather than
+ * trusted from the caller, so a guessed reservation id gets nothing.
+ *
+ * Returns only the countdown, never the history or who adjusted it.
+ */
+export async function getPrepStatusForGuest(
+  code: string,
+  contact: string,
+): Promise<PrepTimerView | null> {
+  const reservation = await findReservationForGuest(code, contact);
+  if (!reservation) return null;
+  return getTimerForReservation(reservation.id);
 }

@@ -56,6 +56,40 @@ export const notificationStatus = pgEnum("notification_status", [
   "failed",
 ]);
 
+/**
+ * Food preparation, which is a different axis from the booking's own lifecycle.
+ * A guest can be `seated` while their order is `preparing`, so this never
+ * touches `reservation_status`.
+ *
+ * There is no NOT_STARTED member: a reservation with no timer row has not
+ * started one. Adding a state to mean "no row" would put the same fact in two
+ * places.
+ *
+ * `delayed` is what `preparing` becomes once the kitchen has run over and the
+ * server has added its automatic ten minutes.
+ */
+export const prepTimerStatus = pgEnum("prep_timer_status", [
+  "preparing",
+  "paused",
+  "delayed",
+  "ready",
+  "completed",
+  "cancelled",
+]);
+
+/** One line of the timer's history. `auto_extended` is written by the server. */
+export const prepTimerEventType = pgEnum("prep_timer_event_type", [
+  "started",
+  "paused",
+  "resumed",
+  "extended",
+  "reduced",
+  "auto_extended",
+  "ready",
+  "completed",
+  "cancelled",
+]);
+
 /* ───────────────────────────────────────────────────────────── tables ───── */
 
 export const tables = pgTable("tables", {
@@ -245,6 +279,77 @@ export const notifications = pgTable(
   ],
 );
 
+/* ────────────────────────────────────────────────────── preparation ─────── */
+
+/**
+ * A food preparation timer for one booking.
+ *
+ * The row is the timer. `endsAt` is the only thing that decides how much time
+ * is left, so a browser that refreshes, sleeps or is closed entirely has no
+ * effect on it, and every device reading the row agrees.
+ *
+ * There is deliberately no `tableId` here. The table already belongs to the
+ * reservation, and copying it would only create a second answer to drift from
+ * the first when staff move a guest. Views read the reservation's table.
+ */
+export const prepTimers = pgTable(
+  "prep_timers",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    reservationId: uuid("reservation_id")
+      .notNull()
+      .references(() => reservations.id, { onDelete: "cascade" }),
+
+    status: prepTimerStatus("status").notNull().default("preparing"),
+
+    /** What the kitchen was originally asked for, kept for reporting. */
+    originalDurationMinutes: integer("original_duration_minutes").notNull(),
+
+    startedAt: timestamp("started_at", { withTimezone: true }).notNull().defaultNow(),
+    /** The authority on remaining time. Null only while paused or finished. */
+    endsAt: timestamp("ends_at", { withTimezone: true }),
+    /** What was left when staff paused, so resuming does not lose it. */
+    remainingMsAtPause: integer("remaining_ms_at_pause"),
+
+    /** Manual adjustments by staff, and the server's own additions. Separate
+        counters because one is a decision and the other is an overrun. */
+    extensionCount: integer("extension_count").notNull().default(0),
+    autoExtensionCount: integer("auto_extension_count").notNull().default(0),
+
+    readyAt: timestamp("ready_at", { withTimezone: true }),
+    completedAt: timestamp("completed_at", { withTimezone: true }),
+    cancelledAt: timestamp("cancelled_at", { withTimezone: true }),
+
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("prep_timers_reservation_idx").on(t.reservationId),
+    index("prep_timers_status_idx").on(t.status),
+  ],
+);
+
+/**
+ * The timer's history, so staff can see what happened rather than infer it.
+ * `staffUserId` is null for the server's automatic extension — nobody pressed
+ * anything, and recording a person would be a lie.
+ */
+export const prepTimerEvents = pgTable(
+  "prep_timer_events",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    timerId: uuid("timer_id")
+      .notNull()
+      .references(() => prepTimers.id, { onDelete: "cascade" }),
+    event: prepTimerEventType("event").notNull(),
+    /** Signed, for the adjustment events. Null for the rest. */
+    deltaMinutes: integer("delta_minutes"),
+    staffUserId: uuid("staff_user_id").references(() => staffUsers.id, { onDelete: "set null" }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("prep_timer_events_timer_idx").on(t.timerId)],
+);
+
 export type TableRow = typeof tables.$inferSelect;
 export type NewTableRow = typeof tables.$inferInsert;
 export type ReservationRow = typeof reservations.$inferSelect;
@@ -253,6 +358,10 @@ export type ClosureRow = typeof closures.$inferSelect;
 export type SettingsRow = typeof settings.$inferSelect;
 export type StaffUserRow = typeof staffUsers.$inferSelect;
 export type NotificationRow = typeof notifications.$inferSelect;
+export type PrepTimerRow = typeof prepTimers.$inferSelect;
+export type PrepTimerEventRow = typeof prepTimerEvents.$inferSelect;
+export type PrepTimerStatus = (typeof prepTimerStatus.enumValues)[number];
+export type PrepTimerEventType = (typeof prepTimerEventType.enumValues)[number];
 export type ReservationStatus = (typeof reservationStatus.enumValues)[number];
 export type BookingType = (typeof bookingType.enumValues)[number];
 export type NotificationEvent = (typeof notificationEvent.enumValues)[number];

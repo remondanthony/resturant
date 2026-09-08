@@ -2,7 +2,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AdminPageHeader } from "@/components/admin/AdminShell";
 import { AssignTableDialog } from "@/components/admin/AssignTableDialog";
+import { PrepTimerPanel } from "@/components/admin/PrepTimerPanel";
 import { ReservationActions } from "@/components/admin/ReservationActions";
+import { getTimerForReservation } from "@/lib/prep-timer/service";
 import { NotificationHistory } from "@/components/admin/NotificationHistory";
 import { formatPhone } from "@/lib/booking/phone";
 import { getNotificationsFor } from "@/lib/notifications/service";
@@ -36,6 +38,9 @@ export default async function ReservationDetailPage({
   if (!reservation) notFound();
 
   const notifications = await getNotificationsFor(reservation.id);
+  // Read here so the panel arrives with the timer already settled, rather than
+  // rendering empty and filling in.
+  const prepTimer = reservation.table ? await getTimerForReservation(reservation.id) : null;
 
   const guestName = `${reservation.firstName} ${reservation.lastName}`;
   const justSaved = query.created || query.updated;
@@ -138,6 +143,18 @@ export default async function ReservationDetailPage({
         </section>
 
         <aside className="space-y-8">
+          {/* The kitchen timer belongs to a booking that has somewhere to send
+              the food, so it appears once a table has been assigned. */}
+          {reservation.table ? (
+            <PrepTimerPanel
+              reservationId={reservation.id}
+              tableName={reservation.table.name}
+              guestName={guestName}
+              partySize={reservation.partySize}
+              initialTimer={prepTimer}
+            />
+          ) : null}
+
           <div>
             <h2 className="font-display text-xl font-light text-cream-100">Actions</h2>
             <div className="mt-4 space-y-3">

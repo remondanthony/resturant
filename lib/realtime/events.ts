@@ -8,7 +8,12 @@
 export const CHANGE_CHANNEL = "tavolo_changes";
 
 /** Tables whose changes the dashboard cares about. */
-export type ChangeEntity = "reservations" | "tables" | "table_blocks" | "closures";
+export type ChangeEntity =
+  | "reservations"
+  | "tables"
+  | "table_blocks"
+  | "closures"
+  | "prep_timers";
 export type ChangeOp = "insert" | "update" | "delete";
 
 /** Exactly what the database trigger puts on the channel — no guest data. */
@@ -52,6 +57,7 @@ export function isChangePayload(value: unknown): value is ChangePayload {
     (candidate.entity === "reservations" ||
       candidate.entity === "tables" ||
       candidate.entity === "table_blocks" ||
-      candidate.entity === "closures")
+      candidate.entity === "closures" ||
+      candidate.entity === "prep_timers")
   );
 }

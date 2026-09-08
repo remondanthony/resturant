@@ -19,6 +19,17 @@ import {
   updateReservation,
 } from "@/lib/booking/reservations";
 import { getDayAvailability } from "@/lib/booking/availability";
+import {
+  adjustTimer,
+  cancelTimerForReservation,
+  completeTimer,
+  getTimerForReservation,
+  markReady,
+  pauseTimer,
+  resumeTimer,
+  startTimer,
+} from "@/lib/prep-timer/service";
+import type { PrepTimerView } from "@/lib/prep-timer/types";
 import { notifyGuest } from "@/lib/notifications/service";
 import { retryNotification } from "@/lib/notifications/service";
 import { readForm, type FieldRule, type FormState } from "@/lib/forms";
@@ -147,9 +158,19 @@ export async function changeReservationStatus(
   status: ReservationStatus,
 ): Promise<ActionResult> {
   return guarded(async () => {
+    const staff = await requireStaff();
     const result =
       status === "cancelled" ? await cancelReservation(id) : await setReservationStatus(id, status);
     if (!result.ok) return { ok: false, message: result.message };
+
+    // A booking that has ended must not leave a timer running behind it, or
+    // the kitchen keeps being told an order is late that nobody is waiting for.
+    if (status === "cancelled" || status === "no_show") {
+      await cancelTimerForReservation(id, { staffUserId: staff.id });
+    } else if (status === "completed") {
+      await completeTimer(id, { staffUserId: staff.id });
+    }
+
     // Re-renders every admin view from the database; the realtime trigger
     // carries the same change to any other dashboard that is open.
     refreshAdmin();
@@ -637,6 +658,96 @@ export async function saveSettings(previous: FormState, formData: FormData): Pro
 
   revalidatePath("/", "layout");
   return { status: "sent", attempt };
+}
+
+/* ─────────────────────────────────────────────────── preparation timers ─── */
+
+/**
+ * Kitchen timer controls.
+ *
+ * All of them go through `guarded`, so an unauthenticated POST straight at the
+ * endpoint is refused exactly like every other staff mutation. The reservation
+ * id is the only thing the browser supplies — never a remaining time, an end
+ * time or a timer id, because those are the server's to decide.
+ */
+
+export type TimerActionResult = ActionResult & { timer?: PrepTimerView };
+
+/** The current timer for a booking. Settles any overrun before answering. */
+export async function loadPrepTimer(reservationId: string): Promise<PrepTimerView | null> {
+  await requireStaff();
+  return getTimerForReservation(reservationId);
+}
+
+export async function startPrepTimer(
+  reservationId: string,
+  minutes: number,
+): Promise<TimerActionResult> {
+  return guarded(async () => {
+    const staff = await requireStaff();
+    const result = await startTimer(reservationId, minutes, { staffUserId: staff.id });
+    if (!result.ok) return { ok: false, message: result.message };
+    refreshAdmin();
+    return { ok: true, message: `Preparation started — ${minutes} minutes.`, timer: result.data };
+  }, "We couldn't start the timer. Please try again.") as Promise<TimerActionResult>;
+}
+
+export async function adjustPrepTimer(
+  reservationId: string,
+  minutes: number,
+): Promise<TimerActionResult> {
+  return guarded(async () => {
+    const staff = await requireStaff();
+    const result = await adjustTimer(reservationId, minutes, { staffUserId: staff.id });
+    if (!result.ok) return { ok: false, message: result.message };
+    refreshAdmin();
+    const sign = minutes > 0 ? "Added" : "Removed";
+    return {
+      ok: true,
+      message: `${sign} ${Math.abs(minutes)} minutes.`,
+      timer: result.data,
+    };
+  }, "We couldn't change the timer. Please try again.") as Promise<TimerActionResult>;
+}
+
+export async function pausePrepTimer(reservationId: string): Promise<TimerActionResult> {
+  return guarded(async () => {
+    const staff = await requireStaff();
+    const result = await pauseTimer(reservationId, { staffUserId: staff.id });
+    if (!result.ok) return { ok: false, message: result.message };
+    refreshAdmin();
+    return { ok: true, message: "Preparation paused.", timer: result.data };
+  }, "We couldn't pause the timer. Please try again.") as Promise<TimerActionResult>;
+}
+
+export async function resumePrepTimer(reservationId: string): Promise<TimerActionResult> {
+  return guarded(async () => {
+    const staff = await requireStaff();
+    const result = await resumeTimer(reservationId, { staffUserId: staff.id });
+    if (!result.ok) return { ok: false, message: result.message };
+    refreshAdmin();
+    return { ok: true, message: "Preparation resumed.", timer: result.data };
+  }, "We couldn't resume the timer. Please try again.") as Promise<TimerActionResult>;
+}
+
+export async function markPrepReady(reservationId: string): Promise<TimerActionResult> {
+  return guarded(async () => {
+    const staff = await requireStaff();
+    const result = await markReady(reservationId, { staffUserId: staff.id });
+    if (!result.ok) return { ok: false, message: result.message };
+    refreshAdmin();
+    return { ok: true, message: "Order marked ready.", timer: result.data };
+  }, "We couldn't mark this ready. Please try again.") as Promise<TimerActionResult>;
+}
+
+export async function completePrepTimer(reservationId: string): Promise<TimerActionResult> {
+  return guarded(async () => {
+    const staff = await requireStaff();
+    const result = await completeTimer(reservationId, { staffUserId: staff.id });
+    if (!result.ok) return { ok: false, message: result.message };
+    refreshAdmin();
+    return { ok: true, message: "Preparation completed.", timer: result.data };
+  }, "We couldn't complete this. Please try again.") as Promise<TimerActionResult>;
 }
 
 /* ───────────────────────────────────────────────────────── lookup helpers ── */
