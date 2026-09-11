@@ -1,3 +1,4 @@
+import { sql } from "drizzle-orm";
 import {
   boolean,
   date,
@@ -276,6 +277,17 @@ export const notifications = pgTable(
   (t) => [
     index("notifications_reservation_idx").on(t.reservationId),
     index("notifications_status_idx").on(t.status),
+    /**
+     * One confirmation email per booking.
+     *
+     * Scoped to email so existing SMS rows are unaffected, and excluding
+     * failures so a failed send can be attempted again while a successful or
+     * in-flight one blocks a second. The insert is what competes, so a reload
+     * or a retried action cannot produce two messages.
+     */
+    uniqueIndex("notifications_one_email_confirmation_idx")
+      .on(t.reservationId, t.event)
+      .where(sql`${t.channel} = 'email' and ${t.status} <> 'failed'`),
   ],
 );
 

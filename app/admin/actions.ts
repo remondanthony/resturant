@@ -30,7 +30,7 @@ import {
   startTimer,
 } from "@/lib/prep-timer/service";
 import type { PrepTimerView } from "@/lib/prep-timer/types";
-import { notifyGuest } from "@/lib/notifications/service";
+import { sendConfirmationEmail } from "@/lib/notifications/service";
 import { retryNotification } from "@/lib/notifications/service";
 import { readForm, type FieldRule, type FormState } from "@/lib/forms";
 import { defaultBookingConfig } from "@/lib/booking/config-defaults";
@@ -194,28 +194,27 @@ const STATUS_MESSAGES: Partial<Record<ReservationStatus, string>> = {
 };
 
 /**
- * Sends the guest their confirmation. Never allowed to fail the caller: the
- * booking is already confirmed in the database, and a delivery problem is
- * recorded against the notification row for retry.
+ * Sends the guest their confirmation email.
+ *
+ * Goes to the guest's email address, not their phone: this is the confirmation
+ * that the table is held, and it is the one message this application actually
+ * delivers.
+ *
+ * Never allowed to fail the caller. By the time this runs the table is
+ * assigned and the booking is confirmed in the database; a delivery problem is
+ * recorded against the notification row for retry and nothing more. The
+ * dashboard must not tell staff the assignment failed because an email did.
+ *
+ * Calling it twice is safe — the unique index means the second attempt sends
+ * nothing and reports a duplicate.
  */
 async function sendConfirmation(reservationId: string) {
   try {
-    const reservation = await getReservationById(reservationId);
-    if (!reservation?.phone) return;
-
-    await notifyGuest({
-      reservationId: reservation.id,
-      event: "booking_confirmed",
-      recipient: reservation.phone,
-      context: {
-        guestName: `${reservation.firstName} ${reservation.lastName}`,
-        date: reservation.reservationDate,
-        startTime: reservation.startTime,
-        partySize: reservation.partySize,
-        tableName: reservation.table?.name ?? null,
-        reservationCode: reservation.reservationCode,
-      },
-    });
+    const outcome = await sendConfirmationEmail(reservationId);
+    if (outcome.status === "failed") {
+      // The reason, never the guest's address or any key.
+      console.error("[sendConfirmation] delivery failed:", outcome.reason ?? "unknown");
+    }
   } catch (error) {
     console.error("[sendConfirmation]", error);
   }

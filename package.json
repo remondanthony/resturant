@@ -16,6 +16,7 @@
     "test": "tsx --test tests/*.test.ts",
     "test:db": "tsx --conditions=react-server --env-file=.env.local tests/integration.mts",
     "test:timer": "tsx --conditions=react-server --env-file=.env.local tests/prep-timer-integration.mts",
+    "test:email": "tsx --conditions=react-server --env-file=.env.local tests/email-confirmation-integration.mts",
     "db:start": "/usr/local/opt/postgresql@17/bin/pg_ctl -D /usr/local/var/postgresql@17 -l /usr/local/var/log/postgresql@17.log start",
     "db:stop": "/usr/local/opt/postgresql@17/bin/pg_ctl -D /usr/local/var/postgresql@17 stop -m fast"
   },
@@ -27,6 +28,7 @@
     "pg": "^8.23.0",
     "react": "19.2.8",
     "react-dom": "19.2.8",
+    "resend": "^6.27.0",
     "server-only": "^0.0.1"
   },
   "devDependencies": {
