@@ -18,8 +18,9 @@ export default function ManageReservationPage() {
         eyebrow="Your booking"
         title="Manage your reservation."
         intro={<p>Enter your reservation code and the mobile number you booked with.</p>}
-        image="/images/hero-reservations.svg"
-        imageAlt="A table set for two, glassware catching the light"
+        image="/images/reser.png"
+        imageAlt="Candlelit tables through the dining room, a table laid with glassware in the foreground"
+        imageClassName="[filter:brightness(2.1)_contrast(0.88)_saturate(1.2)]"
       />
 
       <section aria-labelledby="manage-heading" className="border-b border-line">
